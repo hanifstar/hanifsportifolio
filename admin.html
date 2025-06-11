@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Messages</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    .message-card {
+      background: #fff;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .message-card h3 {
+      margin: 0 0 0.3rem;
+    }
+    .message-card span {
+      font-size: 0.9rem;
+      color: #777;
+    }
+    .message-card small {
+      display: block;
+      margin-top: 0.5rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <h1>Contact Messages</h1>
+  <div id="messages-container">Loading messages...</div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // ✅ Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCayGcfnpCAGNDph3YTyEA9_KDdD2C5Fg0",
+      authDomain: "my-tiktok-cbd6f.firebaseapp.com",
+      databaseURL: "https://my-tiktok-cbd6f-default-rtdb.firebaseio.com",
+      projectId: "my-tiktok-cbd6f",
+      storageBucket: "my-tiktok-cbd6f.appspot.com",
+      messagingSenderId: "964441294320",
+      appId: "1:964441294320:web:4c8da74a0cee8ed2644935",
+      measurementId: "G-RYBWW6XB10"
+    };
+
+    // ✅ Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const container = document.getElementById("messages-container");
+
+    db.ref("messages").once("value")
+      .then(snapshot => {
+        if (!snapshot.exists()) {
+          container.innerHTML = "<p>No messages yet.</p>";
+          return;
+        }
+
+        const messages = snapshot.val();
+        const sorted = Object.entries(messages).sort((a, b) => {
+          return new Date(b[1].timestamp) - new Date(a[1].timestamp);
+        });
+
+        container.innerHTML = "";
+        sorted.forEach(([id, data]) => {
+          const card = document.createElement("div");
+          card.className = "message-card";
+          card.innerHTML = `
+            <h3>${data.name} <span>(${data.email})</span></h3>
+            <p><strong>Subject:</strong> ${data.subject}</p>
+            <p>${data.message}</p>
+            <small>${new Date(data.timestamp).toLocaleString()}</small>
+          `;
+          container.appendChild(card);
+        });
+      })
+      .catch(error => {
+        console.error("Error loading messages:", error);
+        container.innerHTML = "<p>Failed to load messages.</p>";
+      });
+  </script>
+</body>
+</html>
